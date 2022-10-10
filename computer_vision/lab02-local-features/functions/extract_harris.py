@@ -1,4 +1,6 @@
 import numpy as np
+import scipy
+import cv2
 
 # Harris corner detector
 def extract_harris(img, sigma = 1.0, k = 0.05, thresh = 1e-5):
@@ -19,20 +21,37 @@ def extract_harris(img, sigma = 1.0, k = 0.05, thresh = 1e-5):
     # TODO: implement the computation of the image gradients Ix and Iy here.
     # You may refer to scipy.signal.convolve2d for the convolution.
     # Do not forget to use the mode "same" to keep the image size unchanged.
-    raise NotImplementedError
+    
+    # Discrete derivation kernel in x direction
+    dx = np.array([[-0.5, 0, 0.5]])
 
-    # Compute local auto-correlation matrix
-    # TODO: compute the auto-correlation matrix here
-    # You may refer to cv2.GaussianBlur for the gaussian filtering (border_type=cv2.BORDER_REPLICATE)
-    raise NotImplementedError
+    # Discrete derivation kernel in y direction
+    dy = dx.transpose()
+
+    # Compute image gradients
+    Ix = scipy.signal.convolve2d(img, dx, mode='same')
+    Iy = scipy.signal.convolve2d(img, dy, mode='same')
+    
+    # Compute auto-correlation matrix:
+    # M = [[Gx2, Gxy], [Gxy, Gy2]]
+    Ix2 = Ix * Ix
+    Iy2 = Iy * Iy
+    Ixy = Ix * Iy
+
+    # Size of Gaussian-kernel
+    ksize = (3, 3)
+    Gx2 = cv2.GaussianBlur(Ix2, ksize=ksize, sigmaX=sigma, borderType=cv2.BORDER_REPLICATE)
+    Gy2 = cv2.GaussianBlur(Iy2, ksize=ksize, sigmaX=sigma, borderType=cv2.BORDER_REPLICATE)
+    Gxy = cv2.GaussianBlur(Ixy, ksize=ksize, sigmaX=sigma, borderType=cv2.BORDER_REPLICATE)
 
     # Compute Harris response function
-    # TODO: compute the Harris response function C here
-    raise NotImplementedError
+    C = Gx2*Gy2 - Gxy*Gxy - k * (Gx2 + Gy2)*(Gx2 + Gy2)
 
     # Detection with threshold
-    # TODO: detection and find the corners here
-    # For the local maximum check, you may refer to scipy.ndimage.maximum_filter to check a 3x3 neighborhood.
-    raise NotImplementedError
+    # Perform non-maximum suppression and thresholding
+    local_max = scipy.ndimage.maximum_filter(C, size=3)
+    y, x = np.where((local_max == C) & (C > thresh))
+
+    corners = np.array([x, y]).transpose()
     return corners, C
 

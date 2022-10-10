@@ -1,8 +1,33 @@
 import numpy as np
 
 def filter_keypoints(img, keypoints, patch_size = 9):
-    # TODO: Filter out keypoints that are too close to the edges
-    raise NotImplementedError
+    # Filter out keypoints that are too close to the edges
+
+    # The patch should be centered around the keypoint, hence its size should be
+    # odd
+    assert(patch_size % 2 == 1)
+
+    # Minimum distance from the edges:
+    d = patch_size // 2 
+
+    height, width = img.shape
+    # Points' coordinates must be "min. distance" far away from both edges,
+    # along both axises
+    min_w_idx = min_h_idx = d
+    max_w_idx = (width-1)-d
+    max_h_idx = (height-1)-d
+
+    # These intervals define a sub-rectangle in the image, with the following
+    # top-left/bottom-right coordinates:
+    tl = np.array([min_w_idx, min_h_idx])
+    br = np.array([max_w_idx, max_h_idx])
+
+    # Keep keypoints only from this sub-rectangle
+    filtered_idx = np.all(np.logical_and(tl <= keypoints, keypoints <= br), axis=1)
+    filtered_keypoints = keypoints[filtered_idx]
+
+    return filtered_keypoints
+
 
 # The implementation of the patch extraction is already provided here
 def extract_patches(img, keypoints, patch_size = 9):

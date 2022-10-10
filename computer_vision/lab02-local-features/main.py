@@ -33,10 +33,12 @@ def main_matching():
     # Harris corner detection
     img1 = cv2.imread(IMG_NAME1, cv2.IMREAD_GRAYSCALE)
     corners1, C1 = extract_harris(img1, HARRIS_SIGMA, HARRIS_K, HARRIS_THRESH)
+    corners1 = filter_keypoints(img1, corners1, patch_size=9)
     plot_image_with_keypoints(os.path.basename(IMG_NAME1[:-4]) + "_harris.png", img1, corners1)
 
     img2 = cv2.imread(IMG_NAME2, cv2.IMREAD_GRAYSCALE)
     corners2, C2 = extract_harris(img2, HARRIS_SIGMA, HARRIS_K, HARRIS_THRESH)
+    corners2 = filter_keypoints(img2, corners2, patch_size=9)
     plot_image_with_keypoints(os.path.basename(IMG_NAME2[:-4]) + "_harris.png", img2, corners2)
 
     # Extract descriptors
