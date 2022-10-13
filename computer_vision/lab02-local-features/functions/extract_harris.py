@@ -39,7 +39,7 @@ def extract_harris(img, sigma = 1.0, k = 0.05, thresh = 1e-5):
     Ixy = Ix * Iy
 
     # Size of Gaussian-kernel
-    ksize = (3, 3)
+    ksize = (0, 0)  # let opencv guess the kernel size
     Gx2 = cv2.GaussianBlur(Ix2, ksize=ksize, sigmaX=sigma, borderType=cv2.BORDER_REPLICATE)
     Gy2 = cv2.GaussianBlur(Iy2, ksize=ksize, sigmaX=sigma, borderType=cv2.BORDER_REPLICATE)
     Gxy = cv2.GaussianBlur(Ixy, ksize=ksize, sigmaX=sigma, borderType=cv2.BORDER_REPLICATE)
