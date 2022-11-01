@@ -31,7 +31,38 @@ class Vgg(nn.Module):
         # #     ...)
         # for all conv layers, set: kernel=3, padding=1
 
-        ...
+        #...
+        self.conv_block1 = nn.Sequential(
+            nn.Conv2d(3, 64, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(2)
+        )
+        self.conv_block2 = nn.Sequential(
+            nn.Conv2d(64, 128, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(2)
+        )
+        self.conv_block3 = nn.Sequential(
+            nn.Conv2d(128, 256, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(2)
+        )
+        self.conv_block4 = nn.Sequential(
+            nn.Conv2d(256, 512, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(2)
+        )
+        self.conv_block5 = nn.Sequential(
+            nn.Conv2d(512, 512, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(2)
+        )
+        self.classifier = nn.Sequential(
+            nn.Linear(512, self.fc_layer),
+            nn.ReLU(),
+            nn.Dropout(),
+            nn.Linear(self.fc_layer, self.classes)
+        )
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -47,7 +78,13 @@ class Vgg(nn.Module):
         """
         score = None
         # todo
-        ...
-
+        #...
+        y = self.conv_block1(x)
+        y = self.conv_block2(y)
+        y = self.conv_block3(y)
+        y = self.conv_block4(y)
+        y = self.conv_block5(y)
+        y = y.view(-1, 512)
+        score = self.classifier(y)
         return score
 
