@@ -77,8 +77,6 @@ class Vgg(nn.Module):
         :return: score: predicted score for each class (10 classes in total), [bs, 10]
         """
         score = None
-        # todo
-        #...
         y = self.conv_block1(x)
         y = self.conv_block2(y)
         y = self.conv_block3(y)

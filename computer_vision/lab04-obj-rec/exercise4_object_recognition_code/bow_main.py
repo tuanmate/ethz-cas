@@ -224,7 +224,7 @@ if __name__ == '__main__':
     nameDirNeg_test = 'data/data_bow/cars-testing-neg'
 
 
-    k = 10
+    k = 15
     numiter = 200
 
     print('creating codebook ...')

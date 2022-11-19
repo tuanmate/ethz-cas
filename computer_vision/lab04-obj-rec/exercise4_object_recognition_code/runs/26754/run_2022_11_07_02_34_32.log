@@ -1,9 +1,0 @@
-2022-11-07 02:34:32,422 INFO Let the games begin
-2022-11-07 02:34:44,872 INFO [Step 99/ Epoch 0]  Loss: 1.9811  
-2022-11-07 02:34:46,237 INFO val acc:28.98
-2022-11-07 02:34:46,263 INFO [*] best model saved
-
-2022-11-07 02:35:00,658 INFO [Step 199/ Epoch 0]  Loss: 1.7851  
-2022-11-07 02:35:04,407 INFO val acc:33.72
-2022-11-07 02:35:04,438 INFO [*] best model saved
-

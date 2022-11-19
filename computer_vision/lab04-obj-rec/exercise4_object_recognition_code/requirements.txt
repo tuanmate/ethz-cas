@@ -6,4 +6,4 @@ torch
 torchvision
 tqdm
 opencv-python
-glob
+#glob
