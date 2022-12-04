@@ -10,9 +10,11 @@
 \usepackage{minted}
 \usepackage{subcaption}
 
-\setlength\paperwidth{20.999cm}\setlength\paperheight{29.699cm}\setlength\voffset{-1in}\setlength\hoffset{-1in}\setlength\topmargin{1.499cm}\setlength\headheight{12pt}\setlength\headsep{0cm}\setlength\footskip{1.131cm}\setlength\textheight{25cm}\setlength\oddsidemargin{2.499cm}\setlength\textwidth{15.999cm}
+\setlength\paperwidth{20.999cm}\setlength\paperheight{29.699cm}\setlength\voffset{-1in}\setlength\hoffset{-3cm}\setlength\topmargin{1.0cm}\setlength\headheight{12pt}\setlength\headsep{0cm}\setlength\footskip{1.131cm}\setlength\textheight{25cm}\setlength\oddsidemargin{2.499cm}\setlength\textwidth{16.999cm}
 
-\newcommand{\sweepsize}{0.3}
+\newcommand{\sweepsize}{0.24}
+
+\pagenumbering{gobble}
 
 \begin{document}
 \begin{center}
@@ -25,30 +27,37 @@
 {\bf Tuan Mate Nguyen}  (tunguyen@student.ethz.ch)
 \hrule
 \section*{Mean-shift}
+First I calculated the L2 distances of the current color to all the other
+pixels' color (as magnitude of the difference vector).
+The implementation of the Gaussian weight function is the same for both versions
+(already vectorized).
+To update the current point first the color vectors of all points are multiplied
+with their weights and divided by the sum of the weights (normalization). Then the
+sum of these normalized color vectors yield the new color vector.
+
+The vectorized implementation had equivalent steps exept that in the beginning I
+created a copy array of all the points ($X$) for each point to allow for parallel
+processing. 
 
 \subsection*{Bandwidth}
 As expected, increasing bandwidth results in fewer distinguished segmented
 object. The reason is that the weights of more distant (in color-space
-coordinates) colors contained in the
-image pixels are higher relative to closer colors when using smaller bandwidth.
+coordinates) colors - contained in the
+image pixels -  are higher relative to closer colors' weights than in the small bandwidth case.
  As a result the mean color value assigned
 to the current pixel will be closer to the global mean (mean color of the full image).
-Consequently these mean values be also closer to each other with each step until
-merging into a set of colors with only few different colors.
+Consequently these mean values will also be closer to each other with each step until
+being merged into a set of colors with only few different colors (e.g. 3 colors for $bandwidth=5$ case).
 
-On the other hand in case of a smaller bandwidth value basically the only the
-close neighborhood would be taken into account. If the color clusters are
-well-separated and far apart the found mean will better approximate the cluster
+On the other hand, in case of a smaller bandwidth value, basically only the
+close neighborhood would be taken into account. If the color clusters (segments) are
+well-separated and far apart, then the found mean will better approximate the cluster
 mean.
 
 If, however, the bandwidth is too small, the new color will basically remain
-unchanged (other colors having low weights have no effect) resulting in an image
-very similar to the original. (Actually the script crashes if there are too many colors.)
-5->3 colors
-4->2 
-3.8->6
-1.8-> ~24
-1.5->more than 25 -> error
+unchanged (other colors have low weights so they have no effect) with every pixel representing a segment, resulting in an image
+very similar to the original. Actually the script crashes if there are too many
+colors (probably not enough labels).
 
 \begin{figure}[h]
     \centering
@@ -61,7 +70,6 @@ very similar to the original. (Actually the script crashes if there are too many
     \includegraphics[width=0.9\linewidth]{result_2.5.png} 
     \caption{$bandwidth=2.5$}
     \end{subfigure}
-    
     \begin{subfigure}{\sweepsize\textwidth}
     \includegraphics[width=0.9\linewidth]{result_3.8.png} 
     \caption{$bandwidth=3.8$}
@@ -75,6 +83,31 @@ very similar to the original. (Actually the script crashes if there are too many
 \end{figure}
 
 \subsection*{Performance}
+
+The script was run on a desktop machine with a GeForce GTX 1080 Ti graphics
+card. (note: on my laptop I got warnings about insufficient amount of RAM). The
+runtime was chosen to be the fastest out of 5 measurements. As expected the CPU
+version using Python loops was the slowest and the batched (vectorized) version
+on the CPU was second slowest. On the GPU the non-vectorized and vecorized
+implementations achieved around 2x and 16x speed-up, respectively, compared to
+the best CPU result.
+
+\begin{table}[h!]
+\begin{center}
+    \begin{tabular}{|c | c|} 
+     \hline
+     CPU & 32.41s \\
+     \hline
+     Batched CPU & 18.62s\\ 
+     \hline
+     GPU & 7.41s\\
+     \hline
+     Batched GPU & 1.17s\\
+     \hline
+    \end{tabular}
+    \caption{Timing results}
+\end{center}
+\end{table}    
 
 % Python code
 %\begin{minted}[mathescape,

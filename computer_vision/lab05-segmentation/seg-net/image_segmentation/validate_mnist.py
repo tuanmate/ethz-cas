@@ -75,7 +75,7 @@ def main():
     model_state_file = os.path.join(args.out_dir,
                                     'model_best.pth.tar')
     logger.info('=> loading model from {}'.format(model_state_file))
-    state_dict = torch.load(model_state_file, map_location=torch.device('cpu'))
+    state_dict = torch.load(model_state_file, map_location=torch.device('cuda'))
     model.load_state_dict(state_dict)
 
     val_dataset = dataset.mnist(is_train=False)

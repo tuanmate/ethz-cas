@@ -10,29 +10,32 @@ from skimage import io, color
 from skimage.transform import rescale
 
 def distance(x, X):
+    # L2 distances are the 2-norm magnitude of the difference vectors
     return torch.linalg.norm(x-X, dim=1)
-    #raise NotImplementedError('distance function not implemented!')
 
 def distance_batch(x, X):
+    # same as for un-vectorized, but here 'X' is batched so just repeat each 'x'
+    # value nPoints time along the 2nd axis so that shapes match for the
+    # substraction
     d = X - torch.unsqueeze(x,1).repeat(1,x.shape[0],1)
     return torch.linalg.norm(d, dim=2)
-    raise NotImplementedError('distance_batch function not implemented!')
 
 def gaussian(dist, bandwidth):
+    # same for both version, the weights are normalized in the update step
     return torch.exp(-torch.square(dist) / (2 * bandwidth*bandwidth))
-    #raise NotImplementedError('gaussian function not implemented!')
 
 def update_point(weight, X):
+    # weight points with the normalized weights and sum up their coordinates for
+    # each dimension to get the updated point
     _weighted = torch.transpose(torch.unsqueeze(weight,0), 0, 1) * X
     return torch.sum(_weighted, dim=0)/torch.sum(weight)
-    #raise NotImplementedError('update_point function not implemented!')
 
 def update_point_batch(weight, X):
-    print(weight.shape)
-    print(X.shape)
+    # same as non-vectorized just extend weights so shapes match for the
+    # multiplication and sum (for normalization)
     _weighted = torch.unsqueeze(weight,2).repeat(1,1,X.shape[2]) * X
-    return torch.sum(_weighted, dim=1)/torch.sum(weight, dim=1)
-    #raise NotImplementedError('update_point_batch function not implemented!')
+
+    return torch.sum(_weighted, dim=1)/torch.unsqueeze(torch.sum(weight, dim=1),1).repeat(1,X.shape[2])
 
 def meanshift_step(X, bandwidth=2.5):
     X_ = X.clone()
@@ -44,6 +47,7 @@ def meanshift_step(X, bandwidth=2.5):
 
 def meanshift_step_batch(X, bandwidth=2.5):
     X_ = X.clone()
+    # create a working copy of X_ for all points
     X_ = torch.unsqueeze(X_, 0).repeat(X_.shape[0],1,1)
     dist = distance_batch(X, X_)
     weight = gaussian(dist, bandwidth)
