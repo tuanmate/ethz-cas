@@ -8,7 +8,7 @@ from matplotlib import patches
 from color_histogram import color_histogram
 from propagate import propagate
 from observe import observe
-#from resample import resample
+from resample import resample
 from estimate import estimate
 
 
@@ -57,7 +57,7 @@ def condensation_tracker(video_name, params):
         last_frame = 42
     elif video_name == "video2.avi":
         first_frame = 3
-        last_frame = 40
+        last_frame = 38
     elif video_name == "video3.avi":
         first_frame = 1
         last_frame = 60
@@ -74,6 +74,7 @@ def condensation_tracker(video_name, params):
     image = first_image
     frame_height = first_image.shape[0]
     frame_width = first_image.shape[1]
+    print(frame_height, frame_width)
 
     first_image = cv2.cvtColor(first_image, cv2.COLOR_BGR2RGB)
     ax.imshow(first_image)
@@ -130,7 +131,9 @@ def condensation_tracker(video_name, params):
 
         # Estimate
         # === Implement function estimate() ===
-        mean_state_a_priori[i, :] = estimate(particles, particles_w)
+        mean_state = estimate(particles, particles_w)
+        print(mean_state)
+        mean_state_a_priori[i, :] = mean_state #estimate(particles, particles_w)
         # ======================================
 
         # Get frame
@@ -223,10 +226,10 @@ if __name__ == "__main__":
         "hist_bin": 16,
         "alpha": 0,
         "sigma_observe": 0.1,
-        "model": 0,
-        "num_particles": 30,
+        "model": 1,
+        "num_particles": 500,
         "sigma_position": 15,
-        "sigma_velocity": 1,
-        "initial_velocity": (1, 10)
+        "sigma_velocity": 5,
+        "initial_velocity": (0, 0)
     }
     condensation_tracker(video_name, params)
