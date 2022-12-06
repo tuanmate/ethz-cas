@@ -79,16 +79,27 @@ def condensation_tracker(video_name, params):
     first_image = cv2.cvtColor(first_image, cv2.COLOR_BGR2RGB)
     ax.imshow(first_image)
 
-    toggle_selector.RS = RectangleSelector(
-            ax, line_select_callback,
-            useblit=True,
-            button=[1], minspanx=5, minspany=5,
-            spancoords='pixels', interactive=True
-        )
-    bbox = plt.connect('key_press_event', toggle_selector)
-    key = plt.connect('key_press_event', onkeypress)
-    plt.title("Draw a box then press 'q' to continue")
-    plt.show()
+    #toggle_selector.RS = RectangleSelector(
+    #        ax, line_select_callback,
+    #        useblit=True,
+    #        button=[1], minspanx=5, minspany=5,
+    #        spancoords='pixels', interactive=True
+    #    )
+    #bbox = plt.connect('key_press_event', toggle_selector)
+    #key = plt.connect('key_press_event', onkeypress)
+    #plt.title("Draw a box then press 'q' to continue")
+    #plt.show()
+
+    # for repeatability
+    if video_name == "video1.avi":
+        bottom_right = (145, 113)
+        top_left = (125, 95)
+    elif video_name == "video2.avi":
+        bottom_right = (145, 113)
+        top_left = (125, 95)
+    elif video_name == "video3.avi":
+        bottom_right = (145, 113)
+        top_left = (125, 95)
 
     bbox_width = bottom_right[0] - top_left[0]
     bbox_height = bottom_right[1] - top_left[1]
@@ -131,9 +142,7 @@ def condensation_tracker(video_name, params):
 
         # Estimate
         # === Implement function estimate() ===
-        mean_state = estimate(particles, particles_w)
-        print(mean_state)
-        mean_state_a_priori[i, :] = mean_state #estimate(particles, particles_w)
+        mean_state_a_priori[i, :] = estimate(particles, particles_w)
         # ======================================
 
         # Get frame
@@ -224,12 +233,12 @@ if __name__ == "__main__":
     params = {
         "draw_plots": 1,
         "hist_bin": 16,
-        "alpha": 0,
+        "alpha": 0.0,
         "sigma_observe": 0.1,
-        "model": 1,
-        "num_particles": 500,
-        "sigma_position": 15,
+        "model": 0,
+        "num_particles": 200,
+        "sigma_position": 10,
         "sigma_velocity": 5,
-        "initial_velocity": (0, 0)
+        "initial_velocity": (5, 0)
     }
     condensation_tracker(video_name, params)

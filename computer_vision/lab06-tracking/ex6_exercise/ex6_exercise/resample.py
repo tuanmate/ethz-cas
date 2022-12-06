@@ -3,14 +3,12 @@ import numpy as np
 rng = np.random.default_rng()
 
 def resample(particles, particles_w):
-    #print("Resampling...", end='')
-    #print(particles.shape)
-    #print(particles_w.shape)
-    #print("============")
-    sampled_particles = rng.choice(particles, size=particles.shape[0], replace=True, p=particles_w.reshape(-1), axis=0)
-    #print(sampled_particles)
-    #print(sampled_particles.shape)
-    #print("++++++++++++")
+    p = np.concatenate((particles, particles_w), axis=1)
+    p_new = rng.choice(p, size=particles.shape[0], replace=True, p=particles_w.reshape(-1), axis=0)
+    n_dim = particles.shape[1]
+    sampled_particles = p_new[:, :n_dim]
+    sampled_weights = p_new[:, n_dim]
+    sampled_weights = sampled_weights / np.sum(sampled_weights)
+    sampled_weights = sampled_weights.reshape(-1,1)
 
-    #print("done")
-    return sampled_particles, particles_w
+    return sampled_particles, sampled_weights
