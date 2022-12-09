@@ -55,12 +55,16 @@ def condensation_tracker(video_name, params):
     if video_name == "video1.avi":
         first_frame = 10
         last_frame = 42
+        saved_frames = [11, 17, 23, 29, 35, 41]
+        saved_name = "1"
     elif video_name == "video2.avi":
         first_frame = 3
         last_frame = 38
     elif video_name == "video3.avi":
         first_frame = 1
         last_frame = 60
+        saved_frames = [4, 11, 17, 23, 29, 35]
+        saved_name = "3"
 
     # Change this to where your data is
     data_dir = './ex6_data/'
@@ -92,14 +96,14 @@ def condensation_tracker(video_name, params):
 
     # for repeatability
     if video_name == "video1.avi":
-        bottom_right = (145, 113)
-        top_left = (125, 95)
+        bottom_right = (142, 111)
+        top_left = (128, 99)
     elif video_name == "video2.avi":
-        bottom_right = (145, 113)
-        top_left = (125, 95)
+        bottom_right = (20, 87)
+        top_left = (7, 70)
     elif video_name == "video3.avi":
-        bottom_right = (145, 113)
-        top_left = (125, 95)
+        bottom_right = (31, 95)
+        top_left = (24, 87)
 
     bbox_width = bottom_right[0] - top_left[0]
     bbox_height = bottom_right[1] - top_left[1]
@@ -220,6 +224,8 @@ def condensation_tracker(video_name, params):
         if params["draw_plots"] and t != last_frame:
             
             plt.pause(0.2)
+            if t in saved_frames:
+                plt.savefig(f'results/{saved_name}_hb{params["hist_bin"]}_np{params["num_particles"]}_mm{params["model"]}_am{params["alpha"]}_sp{params["sigma_position"]}_sv{params["sigma_velocity"]}_{t}.png')
             # Remove previous element from plot
             for e in to_remove:
                 e.remove()
@@ -229,16 +235,16 @@ def condensation_tracker(video_name, params):
 
 
 if __name__ == "__main__":
-    video_name = 'video1.avi'
+    video_name = 'video3.avi'
     params = {
         "draw_plots": 1,
-        "hist_bin": 16,
+        "hist_bin": 32,
         "alpha": 0.0,
         "sigma_observe": 0.1,
-        "model": 0,
-        "num_particles": 200,
-        "sigma_position": 10,
-        "sigma_velocity": 5,
-        "initial_velocity": (5, 0)
+        "model": 1,
+        "num_particles": 300,
+        "sigma_position": 2,
+        "sigma_velocity": 2,
+        "initial_velocity": (7, 0)
     }
     condensation_tracker(video_name, params)

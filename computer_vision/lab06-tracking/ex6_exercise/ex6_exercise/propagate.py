@@ -18,7 +18,11 @@ def propagate(particles, frame_height, frame_width, params):
         noise = np.concatenate((pos_noise, vel_noise), axis=1)
     
     new_particles = np.dot(A, particles.transpose()).transpose() + noise
-    new_particles[new_particles<0] = 0
+    xs = new_particles[:,0] < 0
+    ys = new_particles[:,1] < 0
+    new_particles[xs, 0] = 0
+    new_particles[ys, 1] = 0
+    
     xs = new_particles[:,0] >= frame_width
     ys = new_particles[:,1] >= frame_height
     new_particles[xs, 0] = frame_width-1

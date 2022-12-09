@@ -16,19 +16,6 @@ def observe(particles, frame, bbox_height, bbox_width, hist_bin, hist, sigma_obs
         xmax = min(max(0, round(p[0]+half_w)), frame_width)
         ymax = min(max(0, round(p[1]+half_h)), frame_height)
 
-        #xmin = max(0, round(p[0]-half_w))
-        #xmax = min(round(p[0]+half_w), frame_width)
-        #if xmin == 0:
-        #    xmax = bbox_width-1
-        #if xmax == frame_width:
-        #    xmin = frame_width-bbox_width
-        #ymin = max(0, round(p[1]-half_h))
-        #ymax = min(round(p[1]+half_h), frame_height)
-        #if ymin == 0:
-        #    ymax = bbox_height-1
-        #if ymax == frame_height:
-        #    ymin = frame_height-bbox_height
-
         current_hist = color_histogram(xmin, ymin, xmax, ymax, frame, hist_bin)
         chi_dist = chi2_cost(hist, current_hist)
         weight = 1./(np.sqrt(2 * np.pi) * sigma_observe) * np.exp(-1*(chi_dist * chi_dist) / (2 * sigma_observe * sigma_observe))
