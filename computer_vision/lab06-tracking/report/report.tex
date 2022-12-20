@@ -50,7 +50,7 @@ each bin. Then the bins are explicitly normalized by dividing the total number o
 samples.
 
 \subsection{$A$ matrix}
-In case of no motion the state vector consist of only two elements,
+In case of no motion the state vector consists of only two elements,
 corresponding to the $x$ and $y$ coordinates of the object. Since the prediction
 model assumes no motion, the coordinates remain the same after applying the
 deterministic part of the system transition function. Thus, the $A$ matrix will
@@ -199,9 +199,9 @@ and their weights, and the weights are normalized (their sum is 1).
 
 \section{Experiments}
 
-For the following coordinates instead of selecting the starting bounding boxes
+For the experiments in this section instead of selecting the starting bounding boxes
 manually every time, I hardcoded them to the following values to make comparison
-between different paramters more accurate.
+between different parameters more accurate.
 \begin{table}[h!]
 \begin{center}
     \begin{tabular}{ c c c } 
@@ -219,16 +219,22 @@ between different paramters more accurate.
 \end{center}
 \end{table}    
 
+ %=====================================================================================
+
+
+
 \subsection{Video 1}
 
 For the no motion model even the default values worked fairly well. Small
 $\sigma_{position}$ version was a bit noisier. 
 
-Number of particles was 100, 200, 300 resulting similar quality. In this case it
-didn't really matter compared to 30 points, but in later videos using more
-points proved to be more robust. In every case, the number of points were set to 300.
+Tested number of particles were 30, 100, 200 and 300, resulting in similar quality. In case of this simpler video it
+didn't really matter but in later, more complex videos using more
+points proved to be more robust. Consequently the number of points were set to 300.
 
-Different bin numbers (4, 16, 32) yielded similar results, at 64 the tracked trajectory became too noisy.
+Different bin numbers (4, 16, 32) also yielded similar results, however, at 64
+the tracked trajectory became too noisy as the histograms of sampled particles
+near the object didn't match well enough due to the higher resolution of bins.
 
 Updating the appearance model helped, after setting the $\alpha$ value higher
 than $0.5-0.7$ results were more accurate. Without updating the center of the
@@ -237,61 +243,204 @@ dark as original hand).
 %appearance model: 0.1 false track, 0.3 < 0.5~0.7~0.9~1.0 best so far
 %with 0 it always stays bit below hand -> darker image originally; with update its more the center
 
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}{\sweepsize\textwidth}
+    \includegraphics[width=0.9\linewidth]{1/1_hb32_np300_mm0_am0.7_sp5_sv2_11.png} 
+    \end{subfigure}
+    \begin{subfigure}{\sweepsize\textwidth}
+    \includegraphics[width=0.9\linewidth]{1/1_hb32_np300_mm0_am0.7_sp5_sv2_17.png} 
+    \end{subfigure}
+    \begin{subfigure}{\sweepsize\textwidth}
+    \includegraphics[width=0.9\linewidth]{1/1_hb32_np300_mm0_am0.7_sp5_sv2_23.png} 
+    \end{subfigure}
+    \begin{subfigure}{\sweepsize\textwidth}
+    \includegraphics[width=0.9\linewidth]{1/1_hb32_np300_mm0_am0.7_sp5_sv2_29.png} 
+    \end{subfigure}
+    \begin{subfigure}{\sweepsize\textwidth}
+    \includegraphics[width=0.9\linewidth]{1/1_hb32_np300_mm0_am0.7_sp5_sv2_35.png} 
+    \end{subfigure}
+    \begin{subfigure}{\sweepsize\textwidth}
+    \includegraphics[width=0.9\linewidth]{1/1_hb32_np300_mm0_am0.7_sp5_sv2_41.png} 
+    \end{subfigure}
+    \caption{Result for no motion model, with $\sigma_{pos}=5$, $\alpha=0.7$, $n_{points}=300$ and $hist\_bins=32$}
+\end{figure}
+
 The constant velocity model didn't work as well as the no motion model. This is
 not surprising, as the motion was not constant but had sudden direction changes.
 To handle these changes in velocity, $\sigma_{velocity}$ would need
 to be big enough (comparable with initial velocity) so velocity could follow the
-change but that would lead to sparser sampling, making the system less stable. A
-solution could to use more points, but computing power is a limiting factor.
+change but that would lead to spatially sparser sampling, making the system less stable. A
+solution could be to use more points, where computing power could be a limiting factor.
+%1_hb32_np300_mm1_am0.7_sp1_sv1_41
+
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}{\sweepsize\textwidth}
+    \includegraphics[width=0.9\linewidth]{1/1_hb32_np300_mm1_am0.7_sp1_sv1_11.png} 
+    \end{subfigure}
+    \begin{subfigure}{\sweepsize\textwidth}
+    \includegraphics[width=0.9\linewidth]{1/1_hb32_np300_mm1_am0.7_sp1_sv1_17.png} 
+    \end{subfigure}
+    \begin{subfigure}{\sweepsize\textwidth}
+    \includegraphics[width=0.9\linewidth]{1/1_hb32_np300_mm1_am0.7_sp1_sv1_23.png} 
+    \end{subfigure}
+    \begin{subfigure}{\sweepsize\textwidth}
+    \includegraphics[width=0.9\linewidth]{1/1_hb32_np300_mm1_am0.7_sp1_sv1_29.png} 
+    \end{subfigure}
+    \begin{subfigure}{\sweepsize\textwidth}
+    \includegraphics[width=0.9\linewidth]{1/1_hb32_np300_mm1_am0.7_sp1_sv1_35.png} 
+    \end{subfigure}
+    \begin{subfigure}{\sweepsize\textwidth}
+    \includegraphics[width=0.9\linewidth]{1/1_hb32_np300_mm1_am0.7_sp1_sv1_41.png} 
+    \end{subfigure}
+    \caption{Result for constant velocity model, with $\sigma_{pos}=1$,
+    $\sigma_{velocity}=1$, $v_{initial}=(0, -4)$, $\alpha=0.7$, $n_{points}=300$
+    and $hist\_bins=32$. Tracking is lost if sudden change in velocity occurs
+    (sharp turn).}
+\end{figure}
 
 In general sudden movements are better modeled assuming no motion and just using
-bigger standard deviation (because positions are independently generated for
-every frame, but for the constant velocity model the previous velocity vector influences new coordinates).
+bigger standard deviation. In this case positions are independently generated for
+every frame but for the constant velocity model the previous velocity vector
+influences new coordinates, adding some inertia to the system.
 
 \subsection{Video 2}
 
-Using best model from previous case doesn't work: tracking is lost after occlusion
+Using the best models from Video 1 don't work, the appearance update
+prevents it. Reducing alpha to 0.1 helps, but still, the object is occluded for too
+long. During this time the appearance model is altered to an extent that even
+after the object reappears, its histogram doesn't match with the updated one.
+Even if the constant velocity model was used, it doesn't work. Hence $\alpha$
+was set to 0.
 
-solutions:
-don't update so much alpha=0.1 still doesn't work but almost, 0.0 works but gets confused at the end
-as the object is occluded by at least 50\% for several frames, alpha could significantly reduce the performance
-so lets fix alpha=0
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}{\sweepsize\textwidth}
+    \includegraphics[width=0.9\linewidth]{2/2_hb32_np300_mm0_am0.7_sp5_sv1_4.png} 
+    \end{subfigure}
+    \begin{subfigure}{\sweepsize\textwidth}
+    \includegraphics[width=0.9\linewidth]{2/2_hb32_np300_mm0_am0.7_sp5_sv1_11.png} 
+    \end{subfigure}
+    \begin{subfigure}{\sweepsize\textwidth}
+    \includegraphics[width=0.9\linewidth]{2/2_hb32_np300_mm0_am0.7_sp5_sv1_17.png} 
+    \end{subfigure}
+    \begin{subfigure}{\sweepsize\textwidth}
+    \includegraphics[width=0.9\linewidth]{2/2_hb32_np300_mm0_am0.7_sp5_sv1_23.png} 
+    \end{subfigure}
+    \begin{subfigure}{\sweepsize\textwidth}
+    \includegraphics[width=0.9\linewidth]{2/2_hb32_np300_mm0_am0.7_sp5_sv1_29.png} 
+    \end{subfigure}
+    \begin{subfigure}{\sweepsize\textwidth}
+    \includegraphics[width=0.9\linewidth]{2/2_hb32_np300_mm0_am0.7_sp5_sv1_35.png} 
+    \end{subfigure}
+    \caption{Result for no motion model, with $\sigma_{pos}=5$, $\alpha=0.7$, $n_{points}=300$
+    and $hist\_bins=32$. Appearance is changed too much, so original object is quickly lost.}
+\end{figure}
 
-Let's change system model!
-Constant velocity model's effect:
-More robust agains temporary occlusion: on average, as the constant velocity is
-kept (if tuned well in the beginning), the position distribution will be shifted
-by the constant velocity FOR EVERY FRAME. so eventhough the std.dev of position
-noise is not big enough tracking is not lost
-RESULT: pass occlusion
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}{\sweepsize\textwidth}
+    \includegraphics[width=0.9\linewidth]{2/2_hb32_np300_mm0_am0.1_sp5_sv1_4.png} 
+    \end{subfigure}
+    \begin{subfigure}{\sweepsize\textwidth}
+    \includegraphics[width=0.9\linewidth]{2/2_hb32_np300_mm0_am0.1_sp5_sv1_11.png} 
+    \end{subfigure}
+    \begin{subfigure}{\sweepsize\textwidth}
+    \includegraphics[width=0.9\linewidth]{2/2_hb32_np300_mm0_am0.1_sp5_sv1_17.png} 
+    \end{subfigure}
+    \begin{subfigure}{\sweepsize\textwidth}
+    \includegraphics[width=0.9\linewidth]{2/2_hb32_np300_mm0_am0.1_sp5_sv1_23.png} 
+    \end{subfigure}
+    \begin{subfigure}{\sweepsize\textwidth}
+    \includegraphics[width=0.9\linewidth]{2/2_hb32_np300_mm0_am0.1_sp5_sv1_29.png} 
+    \end{subfigure}
+    \begin{subfigure}{\sweepsize\textwidth}
+    \includegraphics[width=0.9\linewidth]{2/2_hb32_np300_mm0_am0.1_sp5_sv1_35.png} 
+    \end{subfigure}
+    \caption{If $\alpha$ is reduced to 0.1, it works better, but the object is
+    occluded for too long. With the mean state getting stuck  the appearance
+    model is again changed too much, and the object is lost.}
+\end{figure}
+%solutions:
+%don't update so much alpha=0.1 still doesn't work but almost, 0.0 works but gets confused at the end
+%as the object is occluded by at least 50\% for several frames, alpha could significantly reduce the performance
+%so lets fix alpha=0
 
+Another potential issue with this setup is if $\sigma_{pos}$ is too small,
+meaning that no points are sampled on the other side of the occluder, then the object
+will not be picked up by the tracker after becoming visible again.
 
-??? When does it work nicely?
-Using previous settings with v=(3,0) and sigma vel. =  it works nicely
+To make sure that the mean state doesn't get stuck after the object disappears, the
+constant velocity model could be used. This is sensible as the movement of the
+object is fairly constant. Thus if the initial velocity is set correctly, the
+sampled particles' position will be shifted roughly by that amount and the
+system becomes more robust against temporary occlusions (again, assuming
+constant movement). Usage of smaller position noise will be tolerated as the "velocity
+inertia" will keep the mean state moving across occluded regions.
 
+%2_hb32_np300_mm1_am0.0_sp10_sv0_4
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}{\sweepsize\textwidth}
+    \includegraphics[width=0.9\linewidth]{2/2_hb32_np300_mm1_am0.0_sp10_sv1_4.png} 
+    \end{subfigure}
+    \begin{subfigure}{\sweepsize\textwidth}
+    \includegraphics[width=0.9\linewidth]{2/2_hb32_np300_mm1_am0.0_sp10_sv1_11.png} 
+    \end{subfigure}
+    \begin{subfigure}{\sweepsize\textwidth}
+    \includegraphics[width=0.9\linewidth]{2/2_hb32_np300_mm1_am0.0_sp10_sv1_17.png} 
+    \end{subfigure}
+    \begin{subfigure}{\sweepsize\textwidth}
+    \includegraphics[width=0.9\linewidth]{2/2_hb32_np300_mm1_am0.0_sp10_sv1_23.png} 
+    \end{subfigure}
+    \begin{subfigure}{\sweepsize\textwidth}
+    \includegraphics[width=0.9\linewidth]{2/2_hb32_np300_mm1_am0.0_sp10_sv1_29.png} 
+    \end{subfigure}
+    \begin{subfigure}{\sweepsize\textwidth}
+    \includegraphics[width=0.9\linewidth]{2/2_hb32_np300_mm1_am0.0_sp10_sv1_35.png} 
+    \end{subfigure}
+    \caption{Constant velocity model, with $\sigma_{pos}=10$, $\sigma_{velocity}=0$, $v=(3,0)$, $\alpha=0.0$, $n_{points}=300$
+    and $hist\_bins=32$. Assuming constant velocity in the $x$ direction, and
+    having larger $\sigma_{pos}$ to detect displacement in the $y$ direction
+    works until the last section, where the hand starts moving faster, breaking
+    the constand $v_x$ condition. Also there's some inaccuracy in front of the
+    dark picture, where the histogram has higher dark pixel counts and the
+    lighter colored wall could look more similar.}
+\end{figure}
 
-Effect of changing system noise:
-smaller vel.noise will result in just bad motion, regardless of actual motion as not enough sample points to find target area
-if larger vel.noise causes then initial difference from object could quickly increase and trackign would deviate significantly
-(sigma=2,8)
+%Let's change system model!
+%Constant velocity model's effect:
+%More robust agains temporary occlusion: on average, as the constant velocity is
+%kept (if tuned well in the beginning), the position distribution will be shifted
+%by the constant velocity FOR EVERY FRAME. so eventhough the std.dev of position
+%noise is not big enough tracking is not lost
+%RESULT: pass occlusion
 
-Effect of changing measurement noise:
-big noise asymptotically would mean that we sample from particles uniformly regardless of their resemblance to the object.
-In a range it works as points close enough to the object will still have
-relatively high weight. If too high, then only the perfect particle'd be kept but
-their position is random, so probably tracking will be lost. (weights of totally
-different and quite close particles will have the same order of magnitude.) as the choice again will be random.
+The effect of system noise if using smaller velocity noise means that only constant motion along a straight
+line is expected. If there's some change in motion, however, then the position
+noise needs to be bigger otherwise tracking won't be able to adapt to the actual motion as not enough points will be sampled near the object.
 
-measurement: determine velocity by measurement!
-????too small pos noise: in case of no motion tracking is blocked by the occlusion. Sensible, we're confident that 
+Using larger velocity noise could make the distance of the sampled points from
+the object to quickly increase and make it difficult for tracking to find its
+way back causing significant trajectory deviation. Actually it shouldn't be used, as the
+original assumption was that the motion is constant, meaning the noise should be
+small.
 
+The effect of using bigger measurement noise would mean that we sample from particles with closer and closer to uniform distribution regardless of their resemblance to the object.
+In a certain range it works - the measurement will be able to better distinct histograms as points close enough to the object will still have
+relatively high weight compared to more distant ones. If the noise is too small, then the histogram corrsponding to perfectly matching position
+would have much higher weight but sampling will always be random and probably this position will be missed so tracking will be
+lost. Weights of more distant and closer particles will be equally small and the
+sampling will again be approximately be uniform.
 
+%measurement: determine velocity by measurement!
+%????too small pos noise: in case of no motion tracking is blocked by the occlusion. Sensible, we're confident that 
+%other:
+%tracking for different alpha values if pos noise is 0, vel noise is 0.5, v =3,0.2
+% - 0.3 doesn't work, 0.2 works
 
-
-other:
-tracking for different alpha values if pos noise is 0, vel noise is 0.5, v =3,0.2
- - 0.3 doesn't work, 0.2 works
-
+ %=====================================================================================
 
 \subsection{Video 3}
 In this case the appearance doesn't need to be updated because there's a big
@@ -307,29 +456,23 @@ sampled will be too small).
     \centering
     \begin{subfigure}{\sweepsize\textwidth}
     \includegraphics[width=0.9\linewidth]{3/3_hb32_np300_mm0_am0.0_sp3_sv5_4.png} 
-    \caption{$bandwidth=1.8$}
     \end{subfigure}
     \begin{subfigure}{\sweepsize\textwidth}
     \includegraphics[width=0.9\linewidth]{3/3_hb32_np300_mm0_am0.0_sp3_sv5_11.png} 
-    \caption{$bandwidth=2.5$}
     \end{subfigure}
     \begin{subfigure}{\sweepsize\textwidth}
     \includegraphics[width=0.9\linewidth]{3/3_hb32_np300_mm0_am0.0_sp3_sv5_17.png} 
-    \caption{$bandwidth=3.8$}
     \end{subfigure}
     \begin{subfigure}{\sweepsize\textwidth}
     \includegraphics[width=0.9\linewidth]{3/3_hb32_np300_mm0_am0.0_sp3_sv5_23.png} 
-    \caption{$bandwidth=5$}
     \end{subfigure}
     \begin{subfigure}{\sweepsize\textwidth}
     \includegraphics[width=0.9\linewidth]{3/3_hb32_np300_mm0_am0.0_sp3_sv5_29.png} 
-    \caption{$bandwidth=3.8$}
     \end{subfigure}
     \begin{subfigure}{\sweepsize\textwidth}
     \includegraphics[width=0.9\linewidth]{3/3_hb32_np300_mm0_am0.0_sp3_sv5_35.png} 
-    \caption{$bandwidth=5$}
     \end{subfigure}
-    \caption{$\sigma_{pos}=3$ is too small, sampled points can't keep up with
+    \caption{No motion model: $\sigma_{pos}=3$ is too small, sampled points can't keep up with
     the ball, position remains constant (until ball rolls back)}
 \end{figure}
 
@@ -337,29 +480,23 @@ sampled will be too small).
     \centering
     \begin{subfigure}{\sweepsize\textwidth}
     \includegraphics[width=0.9\linewidth]{3/3_hb32_np300_mm0_am0.0_sp7_sv5_4.png} 
-    \caption{$bandwidth=1.8$}
     \end{subfigure}
     \begin{subfigure}{\sweepsize\textwidth}
     \includegraphics[width=0.9\linewidth]{3/3_hb32_np300_mm0_am0.0_sp7_sv5_11.png} 
-    \caption{$bandwidth=2.5$}
     \end{subfigure}
     \begin{subfigure}{\sweepsize\textwidth}
     \includegraphics[width=0.9\linewidth]{3/3_hb32_np300_mm0_am0.0_sp7_sv5_17.png} 
-    \caption{$bandwidth=3.8$}
     \end{subfigure}
     \begin{subfigure}{\sweepsize\textwidth}
     \includegraphics[width=0.9\linewidth]{3/3_hb32_np300_mm0_am0.0_sp7_sv5_23.png} 
-    \caption{$bandwidth=5$}
     \end{subfigure}
     \begin{subfigure}{\sweepsize\textwidth}
     \includegraphics[width=0.9\linewidth]{3/3_hb32_np300_mm0_am0.0_sp7_sv5_29.png} 
-    \caption{$bandwidth=3.8$}
     \end{subfigure}
     \begin{subfigure}{\sweepsize\textwidth}
     \includegraphics[width=0.9\linewidth]{3/3_hb32_np300_mm0_am0.0_sp7_sv5_35.png} 
-    \caption{$bandwidth=5$}
     \end{subfigure}
-    \caption{$\sigma_{pos}=7$, roughly same as $v_x$ (ignoring the dimensionality)}
+    \caption{No motion model: $\sigma_{pos}=7$, roughly same as $v_x$ (ignoring the dimensionality), tracking works}
 
 \end{figure}
 
@@ -367,7 +504,7 @@ Constant velocity model approximate well the ball's motion until it hits the
 wall. Then it's lost of course as velocity in the $x$ coordinate will be the
 opposite, while the model assumes consant motion.
 To handle this the noise needs to be roughly twice as big as the initial
-velocity. However, it's not robuse because in this case the velocity vector easily deviates from the
+velocity. However, it's not robust because in this case the velocity vector easily deviates from the
 ball. As mentioned above, more sampling points could help with this, were computing power not a limiting factor.
 %alpha=0, sigma pos=2, sigma vel5, vel=5,0 is nice!
 
@@ -375,31 +512,27 @@ ball. As mentioned above, more sampling points could help with this, were comput
     \centering
     \begin{subfigure}{\sweepsize\textwidth}
     \includegraphics[width=0.9\linewidth]{3/3_hb32_np300_mm1_am0.0_sp2_sv2_4.png} 
-    \caption{$bandwidth=1.8$}
     \end{subfigure}
     \begin{subfigure}{\sweepsize\textwidth}
     \includegraphics[width=0.9\linewidth]{3/3_hb32_np300_mm1_am0.0_sp2_sv2_11.png} 
-    \caption{$bandwidth=2.5$}
     \end{subfigure}
     \begin{subfigure}{\sweepsize\textwidth}
     \includegraphics[width=0.9\linewidth]{3/3_hb32_np300_mm1_am0.0_sp2_sv2_17.png} 
-    \caption{$bandwidth=3.8$}
     \end{subfigure}
     \begin{subfigure}{\sweepsize\textwidth}
     \includegraphics[width=0.9\linewidth]{3/3_hb32_np300_mm1_am0.0_sp2_sv2_23.png} 
-    \caption{$bandwidth=5$}
     \end{subfigure}
     \begin{subfigure}{\sweepsize\textwidth}
     \includegraphics[width=0.9\linewidth]{3/3_hb32_np300_mm1_am0.0_sp2_sv2_29.png} 
-    \caption{$bandwidth=3.8$}
     \end{subfigure}
     \begin{subfigure}{\sweepsize\textwidth}
     \includegraphics[width=0.9\linewidth]{3/3_hb32_np300_mm1_am0.0_sp2_sv2_35.png} 
-    \caption{$bandwidth=5$}
     \end{subfigure}
-    \caption{$\sigma_{pos}=2$, $\sigma_{velocity}=2$, smaller than $v_x=7$ (ignoring the dimensionality). After sharp change of direction tracking is lost.}
+    \caption{Constant velocity model: $\sigma_{pos}=2$, $\sigma_{velocity}=2$, smaller than $v_x=7$ (ignoring the dimensionality). After sharp change of direction tracking is lost.}
 
 \end{figure}
+
+\newpage
 
 \section{Further questions}
 \subsection{Number of particles}
@@ -413,7 +546,7 @@ magnitude.
 
 Fewer number of bins make the observation less sensitive to the color histogram.
 This could work if there's a high contrast between the object (foreground) and
-background. The performance will degrade, however, if these have similar colors.
+background. The performance will degrade, however, if they have similar colors.
 
 More bins could allow for better distinction of histograms and more accurate tracking. This requires a
 higher quality footage (it's more sensitive to color noise) and enough sampling
