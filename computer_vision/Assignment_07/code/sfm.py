@@ -45,17 +45,17 @@ def main():
   # Visualize images and features
   # You can comment these lines once you verified that the images are loaded correctly
 
-  # Show the images
-  PlotImages(images)
+  ## Show the images
+  #PlotImages(images)
 
-  # Show the keypoints
-  for image_name in image_names:
-    PlotWithKeypoints(images[image_name])
+  ## Show the keypoints
+  #for image_name in image_names:
+  #  PlotWithKeypoints(images[image_name])
 
-  # Show the feature matches
-  for image_pair in itertools.combinations(image_names, 2):
-    PlotImagePairMatches(images[image_pair[0]], images[image_pair[1]], matches[(image_pair[0], image_pair[1])])
-    gc.collect()
+  ## Show the feature matches
+  #for image_pair in itertools.combinations(image_names, 2):
+  #  PlotImagePairMatches(images[image_pair[0]], images[image_pair[1]], matches[(image_pair[0], image_pair[1])])
+  #  gc.collect()
   # ------------------------------------------------------------------------------------
   
   e_im1_name = image_names[init_images[0]]
@@ -82,13 +82,22 @@ def main():
   # you can set the image poses in the images (image.SetPose(...))
   # Note that this pose is assumed to be the transformation from global space to image space
   # TODO
-  
+  R = np.eye(3)
+  t = np.zeros((3))
+  e_im1.SetPose(R, t)
+  for i, (R, t) in enumerate(possible_relative_poses):
+    e_im2.SetPose(R.T, -t)
+    points3d, _, _ = TriangulatePoints(K, e_im1, e_im2, e_matches)
+    n_points = points3d.shape[0]
+    if n_points > max_points:
+      best_pose = i
 
   # TODO
   # Set the image poses in the images (image.SetPose(...))
   # Note that the pose is assumed to be the transformation from global space to image space
-  e_im1.SetPose(...)
-  e_im2.SetPose(...)
+  R, t = possible_relative_poses[best_pose]
+  e_im1.SetPose(R, t)
+  e_im2.SetPose(np.eye(3), np.zeros((3)))
 
 
   # Triangulate initial points
@@ -107,8 +116,8 @@ def main():
   # ------------------Map extension--------------------------------------
   # Register new images + triangulate
   # Run until we can register all images
-  while len(registered_images) < len(images):
-    for image_name in images:
+  while len(registered_images) == 2:
+    for image_name in list(images.keys())[2:8]:
       if image_name in registered_images:
         continue
 

@@ -13,8 +13,12 @@ from impl.sfm.corrs import GetPairMatches
 def EstimateEssentialMatrix(K, im1, im2, matches):
   # TODO
   # Normalize coordinates (to points on the normalized image plane)
-  normalized_kps1 = 
-  normalized_kps2 = 
+
+  K_inv = np.linalg.inv(K)
+  kps1 = np.append(im1.kps, [[1]]*im1.kps.shape[0], axis=1)
+  kps2 = np.append(im2.kps, [[1]]*im2.kps.shape[0], axis=1)
+  normalized_kps1 = np.dot(K_inv, kps1.transpose()).transpose()
+  normalized_kps2 = np.dot(K_inv, kps2.transpose()).transpose()
 
   
   # Assemble constraint matrix as equation 2.1
@@ -22,6 +26,16 @@ def EstimateEssentialMatrix(K, im1, im2, matches):
   for i in range(matches.shape[0]):
     # TODO
     # Add the constraints
+    n = matches[i,0]
+    m = matches[i,1]
+    x1 = normalized_kps1[n, 0]
+    y1 = normalized_kps1[n, 1]
+    x2 = normalized_kps2[m, 0]
+    y2 = normalized_kps2[m, 1]
+
+    constraint_row = np.array([x1*x2, x1*y2, x1, y1*x2, y1*y2, y1, x2, y2, 1])
+    constraint_matrix[i, :] = constraint_row
+    
   
   # Solve for the nullspace of the constraint matrix
   _, _, vh = np.linalg.svd(constraint_matrix)
@@ -29,13 +43,18 @@ def EstimateEssentialMatrix(K, im1, im2, matches):
 
   # TODO
   # Reshape the vectorized matrix to it's proper shape again
-  E_hat = 
+  E_hat = vectorized_E_hat.reshape(3,3)
 
   # TODO
   # We need to fulfill the internal constraints of E
   # The first two singular values need to be equal, the third one zero.
   # Since E is up to scale, we can choose the two equal singluar values arbitrarily
-  E = 
+  U, D, V = np.linalg.svd(E_hat)
+  D[0] = 1
+  D[1] = 1
+  D[2] = 0
+  D = np.diag(D)
+  E = U @ D @ V
 
   # This is just a quick test that should tell you if your estimated matrix is not correct
   # It might fail if you estimated E in the other direction (i.e. kp2' * E * kp1)
@@ -132,14 +151,26 @@ def TriangulatePoints(K, im1, im2, matches):
   # Make sure to also remove the corresponding rows in `im1_corrs` and `im2_corrs`
 
   # Filter points behind the first camera
-  im1_corrs = 
-  im2_corrs =
-  points3D = 
+  filtered_idx = np.zeros((num_new_matches), dtype=bool)
+  rt1 = np.append(R1, np.expand_dims(t1, 1), 1)
+  for i in range(num_new_matches):
+    p = rt1 @ np.append(points3D[i], [1], 0) 
+    filtered_idx[i] = p[2] > 0
+
+  im1_corrs = im1_corrs[filtered_idx]
+  im2_corrs = im2_corrs[filtered_idx]
+  points3D = points3D[filtered_idx]
 
   # Filter points behind the second camera
-  im1_corrs = 
-  im2_corrs =
-  points3D = 
+  filtered_idx = np.zeros((points3D.shape[0]), dtype=bool)
+  rt2 = np.append(R2, np.expand_dims(t2, 1), 1)
+  for i in range(points3D.shape[0]):
+    p = rt2 @ np.append(points3D[i], [1], 0) 
+    filtered_idx[i] = p[2] > 0
+
+  im1_corrs = im1_corrs[filtered_idx]
+  im2_corrs = im2_corrs[filtered_idx]
+  points3D = points3D[filtered_idx]
 
   return points3D, im1_corrs, im2_corrs
 
@@ -149,7 +180,8 @@ def EstimateImagePose(points2D, points3D, K):
   # We use points in the normalized image plane.
   # This removes the 'K' factor from the projection matrix.
   # We don't normalize the 3D points here to keep the code simpler.
-  normalized_points2D = 
+  points2D_hom = np.append(points2D, [[1]]*points2D.shape[0], axis=1)
+  normalized_points2D = (np.linalg.inv(K) @ points2D_hom.transpose()).transpose()
 
   constraint_matrix = BuildProjectionConstraintMatrix(normalized_points2D, points3D)
 
@@ -187,6 +219,33 @@ def TriangulateImage(K, image_name, images, registered_images, matches):
   # You can save the correspondences for each image in a dict and refer to the `local` new point indices here.
   # Afterwards you just add the index offset before adding the correspondences to the images.
   corrs = {}
-  
+
+  for registered_image_name in registered_images:
+    registered_image = images[registered_image_name]
+    pair_matches = GetPairMatches(registered_image_name, image_name, matches)
+
+    points, reg_corrs, im_corrs = TriangulatePoints(K, registered_image, image, pair_matches)
+    
+    if not points.shape[0]:
+      continue
+
+    offset = points3D.shape[0]
+    n_points = points.shape[0]
+    points3D = np.append(points3D, points, 0)
+
+    points3d_idx = list(range(offset, offset+n_points))
+
+    if image_name in corrs.keys():
+      corrs[image_name]["corrs"] = np.append(corrs[image_name]["corrs"], im_corrs, 0)
+      corrs[image_name]["point3d_idx"] = np.append(corrs[image_name]["point3d_idx"], points3d_idx, 0)
+    else:
+      corrs[image_name] = dict()
+      corrs[image_name]["corrs"] = im_corrs
+      corrs[image_name]["point3d_idx"] = points3d_idx
+
+    corrs[registered_image_name] = dict()
+    corrs[registered_image_name]["corrs"] = reg_corrs
+    corrs[registered_image_name]["point3d_idx"] = points3d_idx
+
   return points3D, corrs
   
